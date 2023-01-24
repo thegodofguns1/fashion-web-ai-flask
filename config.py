@@ -15,7 +15,7 @@ class ProductionConfig(object):
     WORKERS = multiprocessing.cpu_count() * 2 + 1
     WORKER_CONNECTIONS = 10000
     BACKLOG = 64
-    TIMEOUT = 60
+    TIMEOUT = 600
     LOG_LEVEL = 'INFO'
     LOG_DIR_PATH = os.path.join(os.path.dirname(__file__), 'logs')
     LOG_FILE_MAX_BYTES = 1024 * 1024 * 100
@@ -31,7 +31,7 @@ class DevelopConfig(object):
     WORKERS = 2
     WORKER_CONNECTIONS = 1000
     BACKLOG = 64
-    TIMEOUT = 30
+    TIMEOUT = 300
     LOG_LEVEL = 'DEBUG'
     LOG_DIR_PATH = os.path.join(os.path.dirname(__file__), 'logs')
     LOG_FILE_MAX_BYTES = 1024 * 1024
