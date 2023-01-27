@@ -17,7 +17,7 @@ import base64
 sys.path.append("../../")
 from common import code
 from dior_package import pose_transfer
-
+from Logger import logger, LogLevel, TraceException
 # from dior_package.pose_transfer import pose_transfer
 # url = "http://42.192.160.69:8081/api/v1/openPose"
 url = "http://42.192.160.69:8081/api/v1/loadData"
@@ -37,7 +37,9 @@ class PoseTransfer(Resource):
     def get(self): 
         data_list = []
         files = {'source_img':open('/workspace/fashion-web-ai-flask/Imgs/00001-dries-van-noten-spring-2023-ready-to-wear-credit-gorunway.webp','rb'),'target_img':open("/workspace/fashion-web-ai-flask/Imgs/fashionWOMENTees_Tanksid0000796209_7additional.jpg",'rb')}
+        
         rep = requests.post(url,files=files)
+        
         rep_json = rep.json()
         if rep_json['code'] == code.OK:
             source_pimg = torch.Tensor(rep_json['source_pimg']) # c h w RGB
@@ -79,14 +81,32 @@ class PoseTransfer(Resource):
             source_img_bytes = args.get('source_img')[0].read()
             target_pose_bytes = args.get('target_img')[0].read()
         except:
-            return {'code':code.PARAM_ERROR, 'message':'请上传两种图片'}
+            return {'code':code.PARAM_ERROR, 'message':'请上传两张图片，图片格式为formdata'}
+        
         source_img = BytesIO(source_img_bytes)
         target_pose = BytesIO(source_img_bytes)
         # source_img.save("source_img.png")
         # target_img.save("target_img.png")
         # pil_image = Image.open(BytesIO(source_img_bytes))
         files = {'source_img':source_img, 'target_img':target_pose}
-        rep = requests.post(url, files=files)
+        # logger.log(LogLevel.INFO,"test logger")
+        while True:
+            try:
+                rep = requests.post(url, files=files)
+                break
+            except requests.exceptions.ConnectionError as ce:
+                # print('ConnectionError -- please wait 3 seconds')
+                logger.log(LogLevel.ERROR,"Connection Error")
+                time.sleep(3)
+            except requests.exceptions.ChunkedEncodingError as cee:
+                # print('ChunkedEncodingError -- please wait 3 seconds')
+                logger.log(LogLevel.ERROR,"ChunkedEncodingError")
+                time.sleep(3)    
+            except:
+                # print('Unfortunitely -- An Unknow Error Happened, Please wait 3 seconds')
+                logger.log(LogLevel.ERROR,"An Unknow Error Happened")
+                time.sleep(3)  
+        logger.log(LogLevel.INFO,rep.text) 
         rep_json = rep.json()
         if rep_json['code'] == code.OK:
             source_pimg = torch.Tensor(rep_json['source_pimg']) # c h w RGB
@@ -123,7 +143,8 @@ class PoseTransfer(Resource):
             # for file in request.files.getlist('image'):
             #     print(file.filename)
             # 与data_process 通信
-        return {'code':code.SEVER_ERROR, 'message':'生成失败'}
+        else:
+            return {'code':code.SEVER_ERROR, 'message':'生成失败'}
         # return JsonResponse(status=code.OK,message="success", data=[])
 
     def delete(self):

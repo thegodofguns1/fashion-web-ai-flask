@@ -5,6 +5,7 @@ from abc import ABC
 from flask_script import Manager
 from gunicorn.app.base import BaseApplication
 # from gunicorn.six import iteritems
+from Logger import logger, LogLevel, TraceException
 from multiprocessing import cpu_count
 from fashion_web_ai_flask import create_app
 from config import config
